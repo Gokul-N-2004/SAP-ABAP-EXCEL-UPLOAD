@@ -1,0 +1,77 @@
+managed implementation in class zbp_i_cz301_user unique;
+strict ( 2 );
+
+define behavior for zi_cz301_user alias User
+persistent table zt22cz301_user
+lock master
+authorization master ( instance )
+etag master LocalLastChangedAt
+{
+  create;
+  update;
+  delete;
+
+  field ( readonly : update ) EmpId, DevId;
+  field ( readonly ) LocalCreatedBy, LocalLastChangedAt;
+  field ( mandatory : create ) EmpId, DevId, DevDescription;
+
+  association _UserDev { create ( features : instance ); }
+
+
+  action ( features : instance ) uploadExcelData result [1] $self;
+  action ( features : instance ) DownloadExcel result [1] $self;
+
+
+  determination FillFileStatus on modify { field EmpId, DevId; }
+
+
+  determination FillSelectedStatus on modify { field Attachment; }
+
+
+  side effects
+  {
+    field Attachment affects field FileStatus;
+    action uploadExcelData affects $self, field _UserDev.*;
+  }
+
+  mapping for zt22cz301_user
+  {
+    EmpId               = emp_id;
+    DevId               = dev_id;
+    DevDescription      = dev_description;
+    Filename            = filename;
+    Attachment          = attachment;
+    Mimetype            = mimetype;
+    FileStatus          = file_status;
+    TemplateStatus      = template_status;
+    LocalCreatedBy      = local_created_by;
+    LocalCreatedAt      = local_created_at;
+    LastChangedAt       = last_changed_at;
+    LocalLastChangedAt  = local_last_changed_at;
+    LocalLastChangedBy  = local_last_changed_by;
+  }
+}
+
+define behavior for ZI_cz301_user_dev alias UserDev
+  persistent table ztcz301_user_dev
+  lock dependent by _User
+  authorization dependent by _User
+
+{
+  update;
+  delete;
+
+  field ( readonly ) EmpId, DevId, SerialNo;
+
+
+  association _User;
+
+  mapping for ztcz301_user_dev
+  {
+    EmpId     = emp_id;
+    DevId     = dev_id;
+    SerialNo  = serial_no;
+    ObjectType = object_type;
+    ObjectName = object_name;
+  }
+}
